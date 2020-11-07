@@ -9,66 +9,72 @@ __date__         = '14/09/2019'
 __last_update__  = '21/09/2019'
 __version__      = '0.2'
 
-print('*********** carregando software ********')
-
 from os import system
 import os
 from os import remove
 from threading import Thread
+from time import sleep
 
-print('\n*********** biliotecas importadas ******')
+global ips
+ips = 0
 
-global itens
-global x
-global andante
-global defina_ip
-global dict_ips
-dict_ips = {}
+global threads
+threads = 0
 
-itens = []
-andante = 0
+def loc(ip):
+    global ips
+    global threads
+    threads += 1
 
-def loc():
-    global x
-    global andante
-    global defina_ip
-    global dict_ips
-
-    andante += 1
     try:
-        ip = defina_ip + str(x)
-        print('testando.: {}\r'.format(ip),end='')
-
         cmd = "ping -c4 " + ip
         resposta = "".join(os.popen(cmd).readlines())
 
-        dict_ips[ip] = resposta
+        if 'ttl=' in resposta:
+            print('Ip encontrado: ', ip)
+            ips += 1
+    except Exception as erro:
+        print("Erro no programa: ", erro)
+    threads -= 1
 
-        if 'ttl=' in dict_ips[ip]  :
-            global itens
-            itens.append(ip)
-        remove(ip)
-    except:
-        pass
-    andante -= 1
+print()
+print("********************************************")
+print("* Como funciona?")
+print("* Você digita uma classe de Ip, exemplo: ")
+print("* 192.168.0")
+print("*")
+print("* O programa irá executar centenas de pings")
+print("* de 192.168.0.1 até 192.168.0.255")
+print("* retornando quais computadores responderam")
+print("*")
+print("* Você pode digitar qual classe quiser, exemplos: ")
+print("* 192.168.2")
+print("* 192.168.100")
+print("* 10.0.0")
+print("********************************************")
+print()
 
-defina_ip = str(input('Digite um ip alvo (192.168.0.) : '))
-a         = str(input('Começar testar a partir de (0) : '))
-b         = str(input('Testar até qual  ip (150)      : '))
+defina_ip = str(input('Digite uma classe de ip : '))
 
-print('\n*********** iniciando testes ***********')
-for x in range(int(a),int(b)):
-    h = Thread(target=loc)
+_min = 1
+_max = 255
+print("\nIniciando testes entre {} e {}".format(defina_ip+'.'+str(_min), defina_ip+'.'+str(_max)))
+print("Finalização em {} s\n".format(0.3*255+8))
+for x in range(_min, _max):
+    ip = defina_ip + '.' + str(x)
+
+    h = Thread(target=lambda ip=ip: loc(ip))
     h.start()
+    sleep(0.3)
 
-print('\n*********** aguardando respostas *******')
-while andante != 0:
-    print('ips encontrados: ({}) | restantes: ({}) \r'.format(len(itens),andante),end='')
-print('\n*********** respostas OK ***************')
+sleep(4)
 
-print('\n*********** ips encontrados ************')
-for g in itens:
-    print(g)
+while threads != 0:
+    continue
 
-input('\n*********** pressione enter ************')
+if ips == 0:
+    print("\nNenhum ip encontrado entre {} e {}".format(defina_ip+'.'+str(_min), defina_ip+'.'+str(_max)))
+
+
+input('\n\nPressione enter para fechar')
 
